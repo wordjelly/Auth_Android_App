@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "79069425775",
+    "project_id": "jmaps-1341"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79069425775:android:c94ada4fca87b6bb",
+        "android_client_info": {
+          "package_name": "com.wordjelly.auth.oauth"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "79069425775-vugvaj23kbca81jtml8vntns598pkiim.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wordjelly.auth.oauth",
+            "certificate_hash": "A53D15CB7A3DDB3CDFD9C8D3782C78DE790175D1"
+          }
+        },
+        {
+          "client_id": "79069425775-bfqobulod1iipmad6bmt6fvj7dnoama8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBj27sHDHAmRQeqDAcVffzEu8tIRUPnhqY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
