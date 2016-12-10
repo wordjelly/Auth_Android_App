@@ -41,6 +41,21 @@ public class SignInActivity extends AppCompatActivity implements
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
 
+    private static final String user_id_token = "user_id_token";
+    private static final String offline_access_code = "offline_access_code";
+
+    /****
+     * USE THIS SWITCH TO DECIDE WHICH TYPE OF
+     * AUTHENTICATION YOU WANT TO YOU USE WITH GOOGLE_OAUTH
+     * THE TWO OPTIONS ARE:
+     * 1. user_id_access_token => this is just used for identifying the user on the backend, and in the backend it will query the "token_info" endpoint when this is sent. furthermore, the backend expects this to be sent under the "access_token" param name.
+     *2. offline_access_code => this is used for giving the server its own api_access. and in the backend it will query the "token" endpoint. The backend expects this to be sent under the "code" param name.
+     *
+     * Whichever option is chosen, the "state" param must also be sent, this is defined in the #make_api_call_to_backend function.
+     */
+    private static final String LOGIN_TYPE = offline_access_code;
+
+
     private GoogleApiClient mGoogleApiClient;
     private TextView mStatusTextView;
     private ProgressDialog mProgressDialog;
@@ -61,10 +76,18 @@ public class SignInActivity extends AppCompatActivity implements
         // [START configure_signin]
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
-                .requestServerAuthCode(getString(R.string.server_client_id), false)
-                .build();
+        GoogleSignInOptions gso = null;
+        if(LOGIN_TYPE.equals(user_id_token)){
+            gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.server_client_id))
+                    .build();
+        }
+        else if(LOGIN_TYPE.equals(offline_access_code)){
+            gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
+                    .requestServerAuthCode(getString(R.string.server_client_id), false)
+                    .build();
+        }
         // [END configure_signin]
 
         // [START build_client]
@@ -130,7 +153,12 @@ public class SignInActivity extends AppCompatActivity implements
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
             mStatusTextView.setText(getString(R.string.signed_in_fmt, acct.getDisplayName()));
-            send_user_id_to_backend(acct.getServerAuthCode());
+            if(LOGIN_TYPE.equals(user_id_token)){
+                send_user_id_token_to_backend(acct.getIdToken());
+            }
+            else if(LOGIN_TYPE.equals(offline_access_code)) {
+                send_user_offline_access_code_to_backend(acct.getServerAuthCode());
+            }
             updateUI(true);
         } else {
             // Signed out, show unauthenticated UI.
@@ -209,56 +237,87 @@ public class SignInActivity extends AppCompatActivity implements
         }
     }
 
+        /***
+         * sends the user_id_token that is got when we just want to identify
+         * the user on the backend, and have not asked for special permissions
+         * for server side api access.
+         * In this case the code obtained here should be sent to the backed
+         * with the param name : "access_token"
+         *
+         * @param user_id_token
+         */
+        private void send_user_id_token_to_backend(String    user_id_token){
+            Log.d("DEBUG","entered send user user_id_token to backend ");
+            make_api_call_to_backend("id_token",user_id_token);
+        }
+
+
+        /***
+         * sends the offline_access_code for this user to the backend.
+         * this is done when we have requested offline access permissions
+         * in the app, and we get back the "code".
+         * This is sent back to the rails app, where it is exchanged for an
+         * access_token.
+         * In this case the code obtained here should be sent to the backend under the param name "code".
+         */
+        private void send_user_offline_access_code_to_backend(String offline_access_code) {
+            Log.d("DEBUG", "entered send user offline access code to backend with code:" + offline_access_code);
+            make_api_call_to_backend("code",offline_access_code);
+        }
+
     /***
-     * sends the id_token for this user to the backend.
+     *
+     * @param param_name
+     * @param param_value
      */
-    private void send_user_id_to_backend(String id_token) {
-        Log.d("DEBUG", "entered send user id to backend with code:" + id_token);
-        OkHttpClient ok = new OkHttpClient();
+    private void make_api_call_to_backend(String param_name, String param_value){
 
-        HttpUrl.Builder urlBuilder = HttpUrl.parse("http://10.0.2.2:3000/authenticate/omniauth/google_oauth2/callback").newBuilder();
-        String url = urlBuilder.build().toString();
-        JSONObject object = new JSONObject();
-        try {
-            object.put("api_key", "test");
-            object.put("current_app_id", "test_app_id");
-            object.put("path", "omniauth/users/");
-        } catch (Exception e) {
-            Log.d("JSON EXCEPTION", "exception in json serialization of state object");
+            OkHttpClient ok = new OkHttpClient();
+
+            HttpUrl.Builder urlBuilder = HttpUrl.parse("http://10.0.2.2:3000/authenticate/omniauth/google_oauth2/callback").newBuilder();
+            String url = urlBuilder.build().toString();
+            JSONObject object = new JSONObject();
+            try {
+                object.put("api_key", "test");
+                object.put("current_app_id", "test_app_id");
+                object.put("path", "omniauth/users/");
+            } catch (Exception e) {
+                Log.d("JSON EXCEPTION", "exception in json serialization of state object");
+            }
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart(param_name, param_value)
+                    .addFormDataPart("state", object.toString())
+                    .build();
+
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("CONTENT_TYPE", "application/json")
+                    .addHeader("ACCEPT", "application/json")
+                    .method("POST", RequestBody.create(null, new byte[0]))
+                    .post(requestBody)
+                    .build();
+
+            try {
+                //Response response = ok.newCall(request).execute();
+                ok.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.d("SERVER_RESPONSE_FAILED", e.toString());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        Log.d("SERVER_RESPONSE", response.body().toString());
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.d("NETWORK CALL",e.toString());
+            }
+
         }
-        RequestBody requestBody = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("code", id_token)
-                .addFormDataPart("state", object.toString())
-                .build();
-
-
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("CONTENT_TYPE", "application/json")
-                .addHeader("ACCEPT", "application/json")
-                .method("POST", RequestBody.create(null, new byte[0]))
-                .post(requestBody)
-                .build();
-
-        try {
-            //Response response = ok.newCall(request).execute();
-            ok.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.d("SERVER_RESPONSE_FAILED", e.toString());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    Log.d("SERVER_RESPONSE", response.body().toString());
-                }
-            });
-
-        } catch (Exception e) {
-            Log.d("NETWORK CALL",e.toString());
-        }
-    }
 
         @Override
         public void onClick (View v){
