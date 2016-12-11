@@ -1,4 +1,10 @@
 <resources>
+
+    <!-- settings for facebook -->
+    <string name="facebook_app_id">1797733467149265</string>
+
+    <!-- end here -->
+
     <string name="app_name">OAuth</string>
 
     <!-- Strings related to login -->

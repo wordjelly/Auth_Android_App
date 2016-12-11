@@ -248,7 +248,7 @@ public class SignInActivity extends AppCompatActivity implements
          */
         private void send_user_id_token_to_backend(String    user_id_token){
             Log.d("DEBUG","entered send user user_id_token to backend ");
-            make_api_call_to_backend("id_token",user_id_token);
+            ServerConnection.make_api_call_to_backend("id_token",user_id_token,"google_oauth2");
         }
 
 
@@ -262,62 +262,9 @@ public class SignInActivity extends AppCompatActivity implements
          */
         private void send_user_offline_access_code_to_backend(String offline_access_code) {
             Log.d("DEBUG", "entered send user offline access code to backend with code:" + offline_access_code);
-            make_api_call_to_backend("code",offline_access_code);
+            ServerConnection.make_api_call_to_backend("code",offline_access_code,"google_oauth2");
         }
 
-    /***
-     *
-     * @param param_name
-     * @param param_value
-     */
-    private void make_api_call_to_backend(String param_name, String param_value){
-
-            OkHttpClient ok = new OkHttpClient();
-
-            HttpUrl.Builder urlBuilder = HttpUrl.parse("http://10.0.2.2:3000/authenticate/omniauth/google_oauth2/callback").newBuilder();
-            String url = urlBuilder.build().toString();
-            JSONObject object = new JSONObject();
-            try {
-                object.put("api_key", "test");
-                object.put("current_app_id", "test_app_id");
-                object.put("path", "omniauth/users/");
-            } catch (Exception e) {
-                Log.d("JSON EXCEPTION", "exception in json serialization of state object");
-            }
-            RequestBody requestBody = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart(param_name, param_value)
-                    .addFormDataPart("state", object.toString())
-                    .build();
-
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("CONTENT_TYPE", "application/json")
-                    .addHeader("ACCEPT", "application/json")
-                    .method("POST", RequestBody.create(null, new byte[0]))
-                    .post(requestBody)
-                    .build();
-
-            try {
-                //Response response = ok.newCall(request).execute();
-                ok.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        Log.d("SERVER_RESPONSE_FAILED", e.toString());
-                    }
-
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        Log.d("SERVER_RESPONSE", response.body().toString());
-                    }
-                });
-
-            } catch (Exception e) {
-                Log.d("NETWORK CALL",e.toString());
-            }
-
-        }
 
         @Override
         public void onClick (View v){
