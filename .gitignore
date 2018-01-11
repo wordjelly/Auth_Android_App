@@ -6,4 +6,6 @@
 .DS_Store
 /build
 /captures
+/app/google-services.json
+/app/src/main/res/values/strings.xml
 .externalNativeBuild
