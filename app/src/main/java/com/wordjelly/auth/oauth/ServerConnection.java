@@ -34,8 +34,8 @@ public class ServerConnection {
         String url = urlBuilder.build().toString();
         JSONObject object = new JSONObject();
         try {
-            object.put("api_key", "test");
-            object.put("current_app_id", "test_app_id");
+            object.put("api_key", "021ee7d31b9c3f813546c63c25f1219921f52484d688e1f756b0fe33359c85b6");
+            object.put("current_app_id", "5a5259cb421aa91664913ed1");
             object.put("path", "omniauth/users/");
         } catch (Exception e) {
             Log.d("JSON EXCEPTION", "exception in json serialization of state object");
@@ -65,7 +65,7 @@ public class ServerConnection {
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    Log.d("SERVER_RESPONSE", response.body().toString());
+                    Log.d("SERVER_RESPONSE", response.body().string());
                 }
             });
 

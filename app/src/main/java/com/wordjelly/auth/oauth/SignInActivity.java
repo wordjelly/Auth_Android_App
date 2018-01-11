@@ -1,5 +1,6 @@
 package com.wordjelly.auth.oauth;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import okhttp3.Response;
 public class SignInActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener {
+
 
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
@@ -80,6 +82,8 @@ public class SignInActivity extends AppCompatActivity implements
         if(LOGIN_TYPE.equals(user_id_token)){
             gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.server_client_id))
+                    .requestEmail()
+                    .requestProfile()
                     .build();
         }
         else if(LOGIN_TYPE.equals(offline_access_code)){
@@ -93,6 +97,7 @@ public class SignInActivity extends AppCompatActivity implements
         // [START build_client]
         // Build a GoogleApiClient with access to the Google Sign-In API and the
         // options specified by gso.
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
@@ -242,7 +247,7 @@ public class SignInActivity extends AppCompatActivity implements
          * the user on the backend, and have not asked for special permissions
          * for server side api access.
          * In this case the code obtained here should be sent to the backed
-         * with the param name : "access_token"
+         * with the param name : "id_token"
          *
          * @param user_id_token
          */

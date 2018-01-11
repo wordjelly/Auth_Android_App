@@ -1,7 +1,8 @@
 <resources>
 
     <!-- settings for facebook -->
-    <string name="facebook_app_id">1797733467149265</string>
+    <string name="facebook_app_id">1185313488268492</string>
+    <string name="fb_login_protocol_scheme">fb1185313488268492</string>
 
     <!-- end here -->
 
@@ -63,5 +64,5 @@
     <!-- TODO(user): replace with your real server client ID -->
     <!-- Server Client ID.  This should be a valid Web OAuth 2.0 Client ID obtained
          from https://console.developers.google.com/ -->
-    <string name="server_client_id">79069425775-bfqobulod1iipmad6bmt6fvj7dnoama8.apps.googleusercontent.com</string>
+    <string name="server_client_id">44250283743-81ub2mu6q8ldjg4ne8bmg0bu24klfgjd.apps.googleusercontent.com</string>
 </resources>
